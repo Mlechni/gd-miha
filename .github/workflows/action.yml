@@ -9,13 +9,19 @@ jobs:
     
     steps:
     - uses: actions/checkout@master
-    - name: Deploy code to Lambda
-      uses: kohrongying/py-lambda-action@v1.0.2
-      with:
-        lambda_layer_arn: 'arn:aws:lambda:eu-north-1:160013954450:function:github_functions'
-        lambda_function_name: 'github_functions'
-        exclude_files: 'tests my-other-file.txt'
-        lambda_layer_publish: true
+    
+    - name: Install ZIP tool
+      uses: montudor/action-zip@v1
+    
+    - name: Create ZIP file
+      run: zip -r code.zip
+
+    - name: AWS CLI v2
+      uses: imahedi/actions-awscli-v2@latest
+      with: 
+        args: "lambda update-function-code \
+              --function-name arn:aws:lambda:eu-north-1:160013954450:function:github_functions
+              --zip-file fileb://code.zip"
       env:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
