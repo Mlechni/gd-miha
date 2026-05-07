@@ -17,7 +17,7 @@ jobs:
       run: zip -r code.zip
 
     - name: AWS CLI v2
-      uses: imahedi/actions-awscli-v2@latest
+      uses: imehedi/actions-awscli-v2@latest
       with: 
         args: "lambda update-function-code \
               --function-name arn:aws:lambda:eu-north-1:160013954450:function:github_functions
