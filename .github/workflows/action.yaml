@@ -1,35 +1,27 @@
-name: deploy to lambda
-on: 
-  push: 
-    branches: [main]
-jobs:
+name: Deploy AWS Lambda
 
-  deploy_zip:
-    name: deploy lambda function
+on:
+  push:
+    branches: 
+      - main
+
+jobs:
+  deploy:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        go-version: [1.21]
+    permissions:
+      id-token: write # Required for OIDC authentication
+      contents: read  # Required to check out the repository
     steps:
-      - name: checkout source code
-        uses: actions/checkout@v3
-      - name: Install Go
-        uses: actions/setup-go@v1
+      - uses: actions/checkout@v4
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          go-version: ${{ matrix.go-version }}
-      - name: Build binary
-        run: |
-          cd build && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -v -a -o main main.go && zip deployment.zip main
-      - name: default deploy
-        uses: appleboy/lambda-action@v0.2.0
+          role-to-assume: arn:aws:iam::160013954450:role/service-role/github_functions-role-vmyev97s
+          aws-region: eu-north-1
+      
+      - name: Deploy Lambda Function
+        uses: aws-actions/aws-lambda-deploy@v1
         with:
-          aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws_region: eu-north-1
-          function_name: github_functions
-          zip_file: build/deployment.zip
-          memory_size: 128
-          timeout: 10
-          handler: getItem
-          role: arn:aws:iam::160013954450:role/service-role/github_functions-role-vmyev97s
-          runtime: python3.14
+          function-name: my-lambda-function
+          code-artifacts-dir: ./src
