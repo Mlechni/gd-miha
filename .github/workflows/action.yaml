@@ -1,35 +1,52 @@
-name: Deploy to AWS Lambda
+# Github Actions Workflow to deploy a Python Lambda CDK stack
+# Version 2021-09-01
 
-on:
-  push:
-    branches: [ "main" ]
-
-permissions:
-  id-token: write   # This is required for OIDC authentication
-  contents: read    # This is required to checkout the repository
+name: Auto Deploy
+on: 
+ push:
+    branches:
+      - production
 
 jobs:
   deploy:
-    name: Deploy
     runs-on: ubuntu-latest
-    environment: production
-
     steps:
-    - name: Checkout
-      uses: actions/checkout@v5
+      - name: Checkout
+        uses: actions/checkout@v2
 
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v4
-      with:
-        # The role-to-assume should be the ARN of the IAM role you created for GitHub Actions OIDC
-        role-to-assume: "arn:aws:iam::160013954450:role/service-role/github_functions-role-vmyev97s"
-        aws-region: "eu-north-1"
+      - name: Assume AWS Role
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-north-1
+          role-to-assume: "arn:aws:iam::160013954450:role/service-role/github_functions-role-vmyev97s"
+          role-duration-seconds: 3600 
+          role-skip-session-tagging: true  # don't have permission to do this
 
-    - name: Deploy Lambda Function
-      uses: aws-actions/aws-lambda-deploy@v1.1.0
-      with:
-        function-name: github_functions
-        code-artifacts-dir: ./src
-        handler: index.handler
-        runtime: python3.14
-        # Add any additional inputs this action supports
+      - name: Install Node
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+
+      - name: NPM Dependencies - Check Cache
+        id: npm_dependencies
+        uses: actions/cache@v2
+        with:
+            # Restoring an identical node_modules dir is the fastest method
+            path: ./node_modules
+            key: node-16-modules-${{ hashFiles('package-lock.json') }}
+
+      - name: NPM Dependencies - Install (Cacheable)
+        if: steps.npm_dependencies.outputs.cache-hit != 'true'
+        run: npm ci
+
+      - name: Python Dependencies - Build Zip (Cacheable)
+        if: steps.python_cache.outputs.cache-hit != 'true'
+        run: ./build-python-zip.sh
+
+      - name: Check Files
+        run: ls -l
+
+      - name: CDK Deploy
+        run: npm run cdk -- deploy $STACK_NAME --require-approval never
