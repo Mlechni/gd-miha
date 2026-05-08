@@ -14,7 +14,7 @@ jobs:
       uses: montudor/action-zip@v1
     
     - name: Create ZIP file
-      run: zip -r code.zip . -i /src
+      run: zip -r code.zip */src
 
     - name: AWS CLI v2
       uses: imehedi/actions-awscli-v2@latest
