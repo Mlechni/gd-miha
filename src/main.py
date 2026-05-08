@@ -1,5 +1,2 @@
-def lambda_handler(event, context):
-    return{
-        'statusCode': 200,
-        'body': "I am a test thing"
-    }
+def test_event():
+    return "[TEST]"

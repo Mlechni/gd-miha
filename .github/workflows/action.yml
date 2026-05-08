@@ -9,11 +9,13 @@ jobs:
     
     steps:
     - uses: actions/checkout@master
-    
-    - name: Install ZIP tool
-      uses: montudor/action-zip@v1
+
+    - name: Archive Release
+      uses: thedoctor0/zip-release@0.7.5
       with:
-        args: zip -qq -r code.zip src
+        type: 'zip'
+        filename: 'code.zip'
+        exclusions: '*.git* *.github*'
 
     - name: AWS CLI v2
       uses: imehedi/actions-awscli-v2@latest
