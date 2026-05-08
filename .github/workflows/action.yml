@@ -12,9 +12,8 @@ jobs:
     
     - name: Install ZIP tool
       uses: montudor/action-zip@v1
-    
-    - name: Create ZIP file
-      run: zip -qq -r code.zip src
+      with:
+        args: zip -qq -r code.zip src
 
     - name: AWS CLI v2
       uses: imehedi/actions-awscli-v2@latest
