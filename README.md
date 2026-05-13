@@ -1,5 +1,3 @@
-## Game Dev ( AWS )
+## Test Lambda function
 
-# Inventory.py 
-Holds all the data for item generation
-( Still needs an item database where it could pull from )
+This is a readme for a lambda function that has been uploaded to GitHub -> Actions -> Lambda
